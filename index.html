@@ -1,0 +1,114 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Miko: Virtual Pet 🌿</title>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;700&family=Playfair+Display:ital,wght@0,600;1,400&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="style.css">
+</head>
+<body>
+
+    <div class="game-container">
+    
+    <header class="game-header">
+      <div class="header-top">
+        <div class="name-container">
+          <h2 id="petNameDisplay"><span class="font-serif">Loading...</span> 🌱</h2>
+          <div id="nameInputWrapper" style="display: none;">
+            <input type="text" id="inputPetName" placeholder="Ketik nama pet..." maxlength="12">
+            <button id="btnSaveName">OK</button>
+          </div>
+        </div>
+        <div class="coin-pocket">🪙 <span id="coinText">0</span></div>
+      </div>
+      <p id="petStatusText">Kondisi: Bahagia 🌿</p>
+    </header>
+
+    <section class="status-section" id="mainStatusSection">
+      <div class="status-group">
+        <div class="status-label">
+          <span>🍗 Energi</span>
+          <span id="energyText">100%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="energyFill" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <div class="status-group">
+        <div class="status-label">
+          <span>🎈 Kebahagiaan</span>
+          <span id="happyText">100%</span>
+        </div>
+        <div class="progress-bar">
+          <div class="progress-fill" id="happyFill" style="width: 100%;"></div>
+        </div>
+      </div>
+
+      <div class="status-group level-group">
+        <div class="status-label">
+          <span id="levelText">⭐ Level 1</span>
+          <span id="xpText">0 / 100 XP</span>
+        </div>
+        <div class="progress-bar xp-bar">
+          <div class="progress-fill" id="xpFill" style="width: 0%;"></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pet-display-box" id="mainPetDisplay">
+      <div class="cloud cloud-1">☁️</div>
+      <div class="cloud cloud-2">☁️</div>
+      <div class="pet-aura" id="petAura"></div>
+      <div class="pet-character" id="petAvatar">🦕</div>
+      <div class="pet-expression" id="petExpression">(◕‿◕)</div>
+    </section>
+
+    <section class="mini-game-box" id="miniGameBox" style="display: none;">
+      <div class="game-cloud game-cloud-1">☁️</div>
+      <div class="game-cloud game-cloud-2">☁️</div>
+
+      <div class="game-sky">Lompat! Ketuk Layar Utk Lompat</div>
+      <div class="game-stage">
+        <div id="gameDino">🦕</div>
+        <div id="gameObstacle">💩</div>
+      </div>
+      <div id="miniGameScore">Skor: 0</div>
+    </section>
+
+    <section class="action-section" id="mainActionSection">
+      <button class="btn-action" id="btnFeed">
+        <span class="icon">🍡</span> Feed Matcha (<span id="feedLimitText">3/3</span>)
+      </button>
+      <button class="btn-action" id="btnPlay">
+        <span class="icon">🎮</span> Play Mini Game
+      </button>
+      <button class="btn-action" id="btnSleep">
+        <span class="icon">💡</span> Matikan Lampu (Tidur)
+      </button>
+      <button class="btn-action" id="btnHeal" style="display: none;">
+        <span class="icon">✨</span> Revive/Reset
+      </button>
+    </section>
+
+    <section class="shop-section" id="shopSection">
+      <h3>🛒 Matcha Premium Shop</h3>
+      <div class="shop-grid">
+        <button class="btn-shop" id="btnBuyIceCream">
+          <span class="shop-icon">🍦</span>
+          <div class="shop-info">
+            <span class="item-name">Matcha Ice Cream</span>
+            <span class="item-effect">Energi +40</span>
+          </div>
+          <span class="item-price">30 🪙</span>
+        </button>
+      </div>
+    </section>
+
+  </div>
+
+
+  <script src="script.js"></script>
+</body>
+</html>
