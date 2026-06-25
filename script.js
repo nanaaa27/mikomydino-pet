@@ -1,5 +1,5 @@
 // ==========================================================================
-// 1. DEKLARASI ELEMEN HTML
+// 1. DEKLARASI ELEMEN HTML (Tetap sesuai struktur dasar kamu)
 // ==========================================================================
 const energyFill = document.getElementById('energyFill');
 const energyText = document.getElementById('energyText');
@@ -31,7 +31,6 @@ const nameInputWrapper = document.getElementById('nameInputWrapper');
 const inputPetName = document.getElementById('inputPetName');
 const btnSaveName = document.getElementById('btnSaveName');
 
-// --- Elemen Baru Untuk Mini-Game ---
 const miniGameBox = document.getElementById('miniGameBox');
 const mainPetDisplay = document.getElementById('mainPetDisplay');
 const mainStatusSection = document.getElementById('mainStatusSection');
@@ -52,12 +51,13 @@ let xp = 0;
 let xpNeeded = 100;
 let isSleeping = false;
 
-// Variabel Baru Batas Makan Gratis & Skor Game
 let freeFeedCount = 3; 
 let isMiniGamePlaying = false;
 let score = 0;
-let checkCollisionInterval;
-let obstacleScoreInterval;
+
+// Variabel Kontrol Engine Game Baru (Menggantikan setInterval lambat)
+let gameAnimationId; 
+let hasPassedObstacle = false; // Mencegah exploitasi skor ganda
 
 // ==========================================================================
 // 3. FUNGSI UPDATE UI UTAMA
@@ -74,7 +74,6 @@ function updateUI() {
   const xpPercentage = (xp / xpNeeded) * 100;
   xpFill.style.width = xpPercentage + '%';
   
-  // Update info sisa kuota makan gratis ke tombol
   feedLimitText.textContent = `${freeFeedCount}/3`;
 
   if (!isAlive || isMiniGamePlaying) return;
@@ -103,10 +102,14 @@ function updateUI() {
       petAvatar.textContent = '🦕';
       petExpression.textContent = '(ಥ﹏ಥ)';
       petStatusText.textContent = 'Kondisi: Sekarat! 🚨';
+      petStatusText.style.backgroundColor = '#fffbeb';
+      petStatusText.style.color = '#b78103';
     } else {
       petAvatar.textContent = '🦕';
       petExpression.textContent = '(◕‿◕)';
       petStatusText.textContent = 'Kondisi: Bahagia 🌿';
+      petStatusText.style.backgroundColor = 'var(--matcha-light)';
+      petStatusText.style.color = 'var(--matcha-medium)';
     }
   }
 }
@@ -115,17 +118,15 @@ function updateUI() {
 // 4. LOGIKA BATASAN MAKAN GRATIS (REAL TIME 24 JAM)
 // ==========================================================================
 function loadFeedLimit() {
-  const today = new Date().toDateString(); // Ambil tanggal hari ini (Format teks biasa)
+  const today = new Date().toDateString();
   const savedDate = localStorage.getItem('lastFeedDate');
   const savedCount = localStorage.getItem('freeFeedCount');
 
   if (savedDate !== today) {
-    // Kalau hari baru, reset jatah makan gratis jadi 3 kali
     freeFeedCount = 3;
     localStorage.setItem('lastFeedDate', today);
     localStorage.setItem('freeFeedCount', freeFeedCount);
   } else if (savedCount !== null) {
-    // Kalau hari yang sama, teruskan sisa kuota lama
     freeFeedCount = parseInt(savedCount);
   }
 }
@@ -135,11 +136,10 @@ function loadFeedLimit() {
 // ==========================================================================
 btnFeed.addEventListener('click', () => {
   if (!isAlive || isSleeping) return;
-
-  loadFeedLimit(); // Cek tanggal dulu sebelum kasih makan
+  loadFeedLimit();
 
   if (freeFeedCount > 0) {
-    freeFeedCount--; // Kurangi jatah makan gratis
+    freeFeedCount--;
     localStorage.setItem('freeFeedCount', freeFeedCount);
 
     energy = Math.min(100, energy + 10);
@@ -159,56 +159,43 @@ btnBuyIceCream.addEventListener('click', () => {
     triggerPopAnimation();
     gainXP(50);
     updateUI();
-    alert("🍦 Premium! Energi Miko bertambah pesat!");
   } else {
     alert("❌ Koin kurang! Main mini game dulu yuk.");
   }
 });
 
-// --- RAHASIA BARU: TOMBOL SAKLAR MATIKAN LAMPU (UPGRADE GLOBAL DARK MODE) ---
 btnSleep.addEventListener('click', () => {
   if (!isAlive) return;
 
-  // Bolak-balik status tidurnya (Kalau true jadi false, kalau false jadi true)
   isSleeping = !isSleeping;
-
-  // == LINE SAKTI: Menghidupkan/mematikan mode gelap di seluruh body web ==
   document.body.classList.toggle('dark-theme');
 
   if (isSleeping) {
-    // 1. Jika lampu dimatikan (Tidur)
-    petDisplayBox.classList.add('night-mode'); // Pasang tema malam di kotak dino
-    btnSleep.classList.add('active-sleep');    // Ubah warna tombol jadi gelap
+    petDisplayBox.classList.add('night-mode');
+    btnSleep.classList.add('active-sleep');
     btnSleep.innerHTML = '<span class="icon">💡</span> Nyalakan Lampu (Bangun)';
     
-    // Kunci tombol aksi agar transparan/buram tanda gak bisa diklik
     btnFeed.style.opacity = '0.5';
     btnPlay.style.opacity = '0.5';
     shopSection.style.opacity = '0.5';
   } else {
-    // 2. Jika lampu dinyalakan kembali (Bangun)
-    petDisplayBox.classList.remove('night-mode'); // Balik ke langit senja cerah
+    petDisplayBox.classList.remove('night-mode');
     btnSleep.classList.remove('active-sleep');
     btnSleep.innerHTML = '<span class="icon">💡</span> Matikan Lampu (Tidur)';
     
-    // Kembalikan tombol aksi jadi tajam lagi
     btnFeed.style.opacity = '1';
     btnPlay.style.opacity = '1';
     shopSection.style.opacity = '1';
   }
-
-  // Refresh visual layar untuk mengganti ekspresi Dino
   updateUI();
 });
 
-
 // ==========================================================================
-// 6. MODUL MINI-GAME: DINO JUMP INTERAKTIF
+// 6. MODUL MINI-GAME: DINO JUMP INTERAKTIF (HIGH PERFORMANCE OPTIMIZED)
 // ==========================================================================
 btnPlay.addEventListener('click', () => {
   if (!isAlive || isSleeping) return;
   
-  // Sembunyikan layar utama, tampilkan arena lompat game
   isMiniGamePlaying = true;
   mainPetDisplay.style.display = 'none';
   mainStatusSection.style.display = 'none';
@@ -219,62 +206,70 @@ btnPlay.addEventListener('click', () => {
   
   miniGameBox.style.display = 'flex';
   
-  // Memulai status game dari awal
   score = 0;
   miniGameScore.textContent = `Skor: ${score}`;
-  gameObstacle.classList.add('obstacle-move'); // Mulai jalankan cangkir matcha jalannya cepat
+  hasPassedObstacle = false;
   
-  startMiniGameEngine();
+  // Memicu animasi CSS rintangan berjalan
+  gameObstacle.classList.add('obstacle-move');
+  
+  // Jalankan Game Loop berkecepatan tinggi (60 FPS)
+  gameAnimationId = requestAnimationFrame(miniGameLoop);
 });
 
-// Deteksi klik di seluruh kotak mini-game agar dino melompat
+// Deteksi klik layar untuk melompat
 miniGameBox.addEventListener('click', () => {
-  // Hanya melompat jika dino sedang menapak tanah (tidak sedang melompat)
   if (!gameDino.classList.contains('dino-jump-animation')) {
     gameDino.classList.add('dino-jump-animation');
-    
-    // Setelah animasi lompat selesai (500ms), copot kelasnya biar bisa lompat lagi
     setTimeout(() => {
       gameDino.classList.remove('dino-jump-animation');
     }, 500);
   }
 });
 
-function startMiniGameEngine() {
-  // A. Mesin Hitung Skor (Setiap 2 detik berhasil lolos rintangan)
-  obstacleScoreInterval = setInterval(() => {
+// --- RAHASIA ENGINE 60 FPS: Menggunakan RequestAnimationFrame ---
+function miniGameLoop() {
+  if (!isMiniGamePlaying) return;
+
+  // 1. Ambil koordinat pixel real-time di layar browser
+  const dinoBottom = parseInt(window.getComputedStyle(gameDino).getPropertyValue("bottom"));
+  const obstacleLeft = parseInt(window.getComputedStyle(gameObstacle).getPropertyValue("left"));
+
+  // 2. LOGIKA TABRAKAN PRESISI (Hitung bounding box area tabrakan)
+  // Dino berada di sebelah kiri (left sekitar 20px - 60px)
+  if (obstacleLeft > 20 && obstacleLeft < 60 && dinoBottom <= 25) {
+    endMiniGame();
+    return; // Hentikan loop seketika jika terjadi tabrakan
+  }
+
+  // 3. LOGIKA SKOR VALID (Skor bertambah jika rintangan sukses melewati X milik Dino)
+  if (obstacleLeft < 20 && !hasPassedObstacle) {
     score += 10;
     miniGameScore.textContent = `Skor: ${score}`;
-  }, 2000);
+    hasPassedObstacle = true; // Tandai rintangan ini sudah dihitung skornya
+  }
 
-  // B. Mesin Tabrakan (Mengecek posisi pixel koordinat Dino vs Cangkir)
-  checkCollisionInterval = setInterval(() => {
-    // Tangkap posisi koordinat real-time elemen di layar browser
-    let dinoBottom = parseInt(window.getComputedStyle(gameDino).getPropertyValue("bottom"));
-    let obstacleLeft = parseInt(window.getComputedStyle(gameObstacle).getPropertyValue("left"));
-    let boxWidth = miniGameBox.offsetWidth;
-    
-    // Hitung perkiraan posisi tabrakan (ketika posisi X berhimpitan dan Y dino sedang di bawah)
-    if (obstacleLeft > 20 && obstacleLeft < 60 && dinoBottom <= 20) {
-      endMiniGame();
-    }
-  }, 50);
+  // Reset status tanda lolos ketika rintangan muncul kembali dari kanan (X > 200)
+  if (obstacleLeft > 200) {
+    hasPassedObstacle = false;
+  }
+
+  // Teruskan loop ke frame berikutnya
+  gameAnimationId = requestAnimationFrame(miniGameLoop);
 }
 
 function endMiniGame() {
-  // Hentikan semua mesin game loop
-  clearInterval(checkCollisionInterval);
-  clearInterval(obstacleScoreInterval);
+  // Matikan engine loop dan copot kelas animasi CSS
+  cancelAnimationFrame(gameAnimationId);
   gameObstacle.classList.remove('obstacle-move');
   
-  // Tambahkan skor game langsung ke dompet koin utama
+  // Amankan data reward hasil game
   coins += score;
-  happiness = Math.min(100, happiness + 20); // Bonus bahagia setelah bermain
-  gainXP(score); // Bonus XP sebesar skor yang didapat!
+  happiness = Math.min(100, happiness + 20); 
+  gainXP(score); 
 
   alert(`💥 Nabrak! Game Over.\nKamu berhasil mengumpulkan ${score} 🪙 Koin.`);
   
-  // Tutup arena game, kembalikan ke layar aslinya
   isMiniGamePlaying = false;
   miniGameBox.style.display = 'none';
   
@@ -289,9 +284,10 @@ function endMiniGame() {
 }
 
 // ==========================================================================
-// 7. FUNGSI UTALITAS TAMBAHAN
+// 7. FUNGSI UTILITAS TAMBAHAN
 // ==========================================================================
 function gainXP(amount) {
+  if (amount <= 0) return;
   xp += amount;
   if (xp >= xpNeeded) {
     level += 1;
@@ -307,6 +303,7 @@ function triggerPopAnimation() {
   setTimeout(() => { petAvatar.classList.remove('animate-pop'); }, 400);
 }
 
+// Pengurangan berkala yang aman
 const gameClock = setInterval(() => {
   if (isAlive && !isSleeping && !isMiniGamePlaying) {
     energy = Math.max(0, energy - 5);
@@ -335,9 +332,15 @@ btnSaveName.addEventListener('click', () => {
   }
 });
 
-btnHeal.addEventListener('click', () => { window.location.reload(); });
+btnHeal.addEventListener('click', () => {
+  // Membersihkan semua data interval sebelum reload agar memori aman
+  clearInterval(gameClock);
+  localStorage.removeItem('mikoPetName'); // Opsional: hapus jika ingin ganti nama saat reset
+  window.location.reload(); 
+});
 
 // Inisialisasi awal saat pertama buka aplikasi
 loadFeedLimit();
 checkPetName();
 updateUI();
+
